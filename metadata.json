@@ -1,0 +1,9 @@
+{
+  "name": "AgriGuard: Smart Tomato Farmer",
+  "description": "An all-in-one AI assistant for tomato farmers providing disease diagnosis, mandi price tracking, crop calendars, and regional pest alerts.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
