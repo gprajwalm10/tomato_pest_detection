@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { AppState, AuthState, PestDiagnosis, HistoryItem, User, FarmInsight, Language, FarmerTask, MarketPrice } from './types';
+import { AppState, AuthState, PestDiagnosis, HistoryItem, User, FarmInsight, Language, FarmerTask, MarketPrice, Weather } from './types';
 import { LOADING_MESSAGES, LOCALIZED_FARM_INSIGHTS, UI_TRANSLATIONS as translations, MOCK_MARKET_PRICES, CROP_TASKS } from './constants';
 import { diagnosePlant } from './services/geminiService';
 import CameraView from './components/CameraView';
@@ -10,6 +10,8 @@ import InsightDetail from './components/InsightDetail';
 import Settings from './components/Settings';
 import Community from './components/Community';
 import ChatRoom from './components/ChatRoom';
+import WeatherWidget from './components/WeatherWidget';
+import { fetchWeather } from './services/weatherService';
 
 const App: React.FC = () => {
   const [authState, setAuthState] = useState<AuthState>('login');
@@ -22,7 +24,9 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [allHistory, setAllHistory] = useState<HistoryItem[]>([]);
   const [error, setError] = useState<string | null>(null);
-  
+  const [weather, setWeather] = useState<Weather | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+
   // Interaction State
   const [selectedInsight, setSelectedInsight] = useState<FarmInsight | null>(null);
   const [activeChatPartner, setActiveChatPartner] = useState<User | null>(null);
@@ -59,6 +63,13 @@ const App: React.FC = () => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             updateUser({ lat, lng });
+
+            // Fetch Weather
+            setWeatherLoading(true);
+            fetchWeather(lat, lng)
+              .then(data => setWeather(data))
+              .catch(err => console.error("Weather fetch error:", err))
+              .finally(() => setWeatherLoading(false));
           },
           (err) => {
             // Silently log location error
@@ -75,7 +86,7 @@ const App: React.FC = () => {
     const updatedUser = { ...currentUser, ...data };
     setCurrentUser(updatedUser);
     localStorage.setItem('agri_current_user', JSON.stringify(updatedUser));
-    
+
     const users: User[] = JSON.parse(localStorage.getItem('agri_users') || '[]');
     const updatedUsers = users.map(u => u.id === currentUser.id ? updatedUser : u);
     setAllUsers(updatedUsers);
@@ -162,9 +173,9 @@ const App: React.FC = () => {
 
   const regionalAlerts = useMemo(() => {
     const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-    return allHistory.filter(h => 
-      h.userId !== currentUser?.id && 
-      h.timestamp > sevenDaysAgo && 
+    return allHistory.filter(h =>
+      h.userId !== currentUser?.id &&
+      h.timestamp > sevenDaysAgo &&
       h.diagnosis.severity === 'high'
     );
   }, [allHistory, currentUser?.id]);
@@ -210,6 +221,9 @@ const App: React.FC = () => {
             </button>
           </header>
 
+          {/* Weather Widget */}
+          <WeatherWidget weather={weather} loading={weatherLoading} />
+
           {/* Regional Alert Banner */}
           {regionalAlerts.length > 0 && (
             <div className="mb-6 bg-red-600 p-4 rounded-3xl text-white shadow-xl animate-pulse flex items-center gap-4">
@@ -228,12 +242,12 @@ const App: React.FC = () => {
           <div className="grid grid-cols-2 gap-4 mb-8">
             <button onClick={() => setAppState('camera')} className="bg-[#2D6A4F] text-white p-6 rounded-[2.5rem] shadow-lg flex flex-col items-center gap-4 active:scale-95 transition-all">
               <div className="w-16 h-16 rounded-3xl bg-white/10 flex items-center justify-center text-3xl">
-                <i className="fas fa-camera-viewfinder"></i>
+                <i className="fas fa-camera"></i>
               </div>
               <span className="font-bold text-sm">{t.scan}</span>
             </button>
             <label className="bg-white border border-green-50 p-6 rounded-[2.5rem] shadow-sm flex flex-col items-center gap-4 cursor-pointer active:scale-95 transition-all">
-              <input type="file" accept="image/*" capture="environment" onChange={handleFileUpload} className="hidden" />
+              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
               <div className="w-16 h-16 rounded-3xl bg-emerald-50 flex items-center justify-center text-3xl text-emerald-600">
                 <i className="fas fa-file-arrow-up"></i>
               </div>
@@ -283,37 +297,37 @@ const App: React.FC = () => {
 
           {/* Daily Task Widget */}
           <div className="mb-8">
-             <div className="flex items-center justify-between mb-4 px-2">
-                <h2 className="text-lg font-bold text-[#1B4332]">{t.daily_tasks}</h2>
-                {currentUser?.plantedDate && (
-                  <div className="text-[10px] bg-emerald-600 text-white px-3 py-1 rounded-full font-bold">Day {daysSincePlanting}</div>
+            <div className="flex items-center justify-between mb-4 px-2">
+              <h2 className="text-lg font-bold text-[#1B4332]">{t.daily_tasks}</h2>
+              {currentUser?.plantedDate && (
+                <div className="text-[10px] bg-emerald-600 text-white px-3 py-1 rounded-full font-bold">Day {daysSincePlanting}</div>
+              )}
+            </div>
+            {currentUser?.plantedDate ? (
+              <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-[2rem] space-y-3">
+                {currentTasks.length > 0 ? (
+                  currentTasks.map(task => (
+                    <div key={task.id} className="bg-white p-4 rounded-2xl flex items-center gap-4 shadow-sm">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${task.category === 'pest' ? 'bg-red-500' : task.category === 'fertilizer' ? 'bg-orange-500' : 'bg-blue-500'}`}>
+                        <i className={`fas ${task.category === 'pest' ? 'fa-bug' : task.category === 'fertilizer' ? 'fa-flask' : 'fa-droplet'}`}></i>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-[#1B4332]">{task.title}</p>
+                        <p className="text-[10px] text-gray-500 line-clamp-1">{task.description}</p>
+                      </div>
+                      <i className="fas fa-check-circle text-gray-200"></i>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-gray-400 text-center py-4 italic">No specific tasks for today. Relax!</p>
                 )}
               </div>
-              {currentUser?.plantedDate ? (
-                <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-[2rem] space-y-3">
-                  {currentTasks.length > 0 ? (
-                    currentTasks.map(task => (
-                      <div key={task.id} className="bg-white p-4 rounded-2xl flex items-center gap-4 shadow-sm">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${task.category === 'pest' ? 'bg-red-500' : task.category === 'fertilizer' ? 'bg-orange-500' : 'bg-blue-500'}`}>
-                          <i className={`fas ${task.category === 'pest' ? 'fa-bug' : task.category === 'fertilizer' ? 'fa-flask' : 'fa-droplet'}`}></i>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-bold text-[#1B4332]">{task.title}</p>
-                          <p className="text-[10px] text-gray-500 line-clamp-1">{task.description}</p>
-                        </div>
-                        <i className="fas fa-check-circle text-gray-200"></i>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-gray-400 text-center py-4 italic">No specific tasks for today. Relax!</p>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-gray-50 border border-dashed border-gray-200 p-6 rounded-[2rem] text-center">
-                   <p className="text-xs text-gray-400 mb-3">Add your planting date in settings for a personalized crop calendar.</p>
-                   <button onClick={() => setAppState('settings')} className="text-xs font-bold text-green-700 underline">Set Date Now</button>
-                </div>
-              )}
+            ) : (
+              <div className="bg-gray-50 border border-dashed border-gray-200 p-6 rounded-[2rem] text-center">
+                <p className="text-xs text-gray-400 mb-3">Add your planting date in settings for a personalized crop calendar.</p>
+                <button onClick={() => setAppState('settings')} className="text-xs font-bold text-green-700 underline">Set Date Now</button>
+              </div>
+            )}
           </div>
 
           {/* Knowledge Hub */}
@@ -324,7 +338,7 @@ const App: React.FC = () => {
             </div>
             <div className="space-y-4">
               {farmInsights.map((insight) => (
-                <div 
+                <div
                   key={insight.id}
                   onClick={() => setSelectedInsight(insight)}
                   className="bg-white p-5 rounded-[2rem] shadow-sm border border-green-50 flex gap-4 items-center active:scale-[0.98] transition-all cursor-pointer"
@@ -387,12 +401,12 @@ const App: React.FC = () => {
 
       {/* Dynamic Overlays */}
       {appState === 'settings' && currentUser && <Settings user={currentUser} onLanguageChange={handleLanguageChange} onLogout={handleLogout} onUpdatePlantedDate={(date) => updateUser({ plantedDate: date })} />}
-      {appState === 'community' && currentUser && <Community currentUser={currentUser} allUsers={allUsers} onConnect={(id) => {}} onAccept={(id) => {}} onOpenChat={(id) => { const partner = allUsers.find(u => u.id === id); if (partner) { setActiveChatPartner(partner); setAppState('chat'); } }} language={currentLanguage} />}
+      {appState === 'community' && currentUser && <Community currentUser={currentUser} allUsers={allUsers} onConnect={(id) => { }} onAccept={(id) => { }} onOpenChat={(id) => { const partner = allUsers.find(u => u.id === id); if (partner) { setActiveChatPartner(partner); setAppState('chat'); } }} language={currentLanguage} />}
       {appState === 'chat' && currentUser && activeChatPartner && <ChatRoom currentUser={currentUser} partner={activeChatPartner} onClose={() => setAppState('community')} language={currentLanguage} />}
       {selectedInsight && <InsightDetail insight={selectedInsight} onClose={() => setSelectedInsight(null)} language={currentLanguage} />}
       {appState === 'camera' && <CameraView onCapture={startAnalysis} onCancel={() => setAppState('dashboard')} language={currentLanguage} user={currentUser} />}
       {appState === 'result' && currentDiagnosis && capturedImage && <DiagnosisCard diagnosis={currentDiagnosis} image={capturedImage} onClose={reset} />}
-      
+
       {/* Loading Overlay */}
       {appState === 'analyzing' && (
         <div className="fixed inset-0 bg-white z-[200] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">

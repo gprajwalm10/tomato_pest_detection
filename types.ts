@@ -73,3 +73,20 @@ export interface FarmInsight {
   color: string;
   isIndianContext?: boolean;
 }
+
+export interface WeatherAlert {
+  id: string;
+  type: string;
+  message: string;
+  severity: 'low' | 'medium' | 'high';
+}
+
+export interface Weather {
+  temperature: number;
+  condition: string;
+  location: string;
+  icon: string;
+  humidity: number;
+  windSpeed: number;
+  alerts: WeatherAlert[];
+}
