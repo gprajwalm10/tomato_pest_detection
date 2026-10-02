@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🍅 AgriGuard
-### Automated Pest Detection & Prevention for Tomato Plants
+### Multilingual Pest & Disease Detection for Tomato Plants
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-tomato--pest--detection.vercel.app-brightgreen?style=for-the-badge)](https://tomato-pest-detection.vercel.app)
 [![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev)
@@ -9,7 +9,7 @@
 [![Gemini AI](https://img.shields.io/badge/Google_Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini)
 [![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
 
-> An AI-powered web application that detects pests and diseases in tomato plants from images or live video — delivering real-time alerts and Gemini-powered preventive recommendations in 6 Indian languages.
+> A web application that identifies pests and diseases in tomato plants from leaf images using a pre-trained CNN classifier, then uses the Gemini API to generate treatment plans in 6 Indian languages.
 
 </div>
 
@@ -17,9 +17,9 @@
 
 ## 📌 Overview
 
-**AgriGuard** is a smart agricultural assistant built specifically for Indian tomato farmers. Upload a photo or use your camera live — AgriGuard's AI instantly identifies pests and diseases, tells you exactly what's wrong, and gives you both organic and chemical treatment options, all in your own language.
+**AgriGuard** is an agricultural assistant built for Indian tomato farmers. A farmer uploads a leaf photo, a pre-trained CNN classifies the condition, and Gemini turns that result into a clear, localized action plan: what is wrong, how severe it is, and what to do about it with organic and chemical options.
 
-Beyond detection, AgriGuard acts as a complete farming companion: tracking crop tasks by planting day, showing live mandi (market) prices, sending regional pest alerts, and connecting farmers in a local community network.
+The app also includes a crop task tracker, mandi price view, regional alert and community sections, and a knowledge hub, so it works as a farming companion beyond detection.
 
 ---
 
@@ -27,14 +27,14 @@ Beyond detection, AgriGuard acts as a complete farming companion: tracking crop 
 
 | Feature | Description |
 |--------|-------------|
-| 📸 **Image Scan** | Upload a tomato leaf photo for instant AI pest and disease detection |
-| 🎥 **Live Assistant** | Real-time video scanning with live AI commentary using Gemini |
-| 🌍 **6 Indian Languages** | Full UI and AI responses in English, Kannada, Hindi, Telugu, Malayalam, Tamil |
-| 🔬 **Expert Analysis** | Detects 7 pests and 4 diseases with confidence score and severity rating |
-| 💊 **Treatment Plans** | Provides organic solutions, chemical solutions, and prevention tips |
-| 📊 **Mandi Prices** | Live market prices from Kolar, Azadpur, Mumbai, and Chittoor |
+| 📸 **Image Scan** | Upload a tomato leaf photo; the CNN classifies the pest or disease |
+| 🎥 **Live Assistant** | Camera-based mode with real-time AI commentary using Gemini |
+| 🌍 **6 Indian Languages** | UI and AI-generated guidance in English, Kannada, Hindi, Telugu, Malayalam, Tamil |
+| 🔬 **Classification** | Covers 7 pests and 4 diseases, with confidence score and severity rating |
+| 💊 **Treatment Plans** | Gemini-generated organic solutions, chemical solutions, and prevention tips |
+| 📊 **Mandi Prices** | Price view for Kolar, Azadpur, Mumbai, and Chittoor *(sample data; live API integration planned)* |
 | 📅 **Crop Task Tracker** | Day-by-day farming tasks from seedling (Day 1) to harvest (Day 100) |
-| 🚨 **Regional Alerts** | High-threat pest warnings for your farming region |
+| 🚨 **Regional Alerts** | Pest warnings for your farming region |
 | 👥 **Farmer Community** | Connect with nearby farmers and share insights |
 | 📚 **Knowledge Hub** | Agronomic tips on irrigation, nano-urea, trellising, and government schemes |
 
@@ -42,98 +42,94 @@ Beyond detection, AgriGuard acts as a complete farming companion: tracking crop 
 
 ## 🔬 What AgriGuard Detects
 
-**Pests:**
+**Pests (7):**
 `Aphids` `Fruitworm` `Whiteflies` `Spider Mites` `Hornworm` `Stink Bugs` `Leaf Miners`
 
-**Diseases:**
+**Diseases (4):**
 `Early Blight` `Late Blight` `Septoria Leaf Spot` `TYLCV (Tomato Yellow Leaf Curl Virus)`
 
 For each detection, AgriGuard returns:
-- ✅ Confidence score (0.0 – 1.0)
+- ✅ Predicted condition with confidence score (0.0 – 1.0)
 - ✅ Severity level (Low / Medium / High)
-- ✅ Visible symptoms list
+- ✅ Visible symptoms
 - ✅ Immediate action steps
-- ✅ Organic treatment options
-- ✅ Chemical treatment options
+- ✅ Organic and chemical treatment options
 - ✅ Prevention tips
-
----
-
-## 🌍 Supported Languages
-
-| Language | Script |
-|---------|--------|
-| English | Latin |
-| Kannada | ಕನ್ನಡ |
-| Hindi | हिन्दी |
-| Telugu | తెలుగు |
-| Malayalam | മലയാളം |
-| Tamil | தமிழ் |
 
 ---
 
 ## 🛠️ Tech Stack
 
 ```
-Frontend        →   React 19, TypeScript, Vite 6
-AI Detection    →   Google Gemini API (@google/genai ^1.35.0)
-Backend Server  →   Node.js, Express 5
-HTTP Client     →   Axios
-Deployment      →   Vercel
-Environment     →   dotenv
+Frontend         →   React 19, TypeScript, Vite 6
+Classification   →   Pre-trained CNN: [MODEL NAME, e.g. MobileNetV2 / ResNet50], [fine-tuned on DATASET / used as published]
+Explanation      →   Google Gemini API (@google/genai ^1.35.0)
+Backend          →   Node.js, Express 5, Axios
+Deployment       →   Vercel
+Environment      →   dotenv
 ```
 
 ---
 
-## 🏗️ Project Structure
+## 🤖 How It Works
 
 ```
-tomato_pest_detection/
-├── components/              # React UI components
-│   └── ...                  # Feature-specific components
-├── server/
-│   └── index.js             # Express backend server
-├── services/                # API and Gemini service integrations
-├── App.tsx                  # Root application component
-├── constants.ts             # App-wide constants:
-│                            #   - AI system prompt (plant pathologist)
-│                            #   - Live assistant prompt (AgriGuard Live)
-│                            #   - Market prices data
-│                            #   - Crop task timeline
-│                            #   - All 6-language UI translations
-│                            #   - Localized farm insights
-├── types.ts                 # TypeScript type definitions
-├── index.tsx                # Application entry point
-├── vite.config.ts           # Vite configuration
-└── .env.example             # Environment variable template
+Farmer uploads a leaf image
+            │
+            ▼
+   Pre-trained CNN classifier  [runs in: BROWSER / EXPRESS SERVER / PYTHON SERVICE]
+   → predicted label + confidence score
+            │
+            ▼
+   Express backend (API key stays server-side)
+            │
+            ▼
+   Gemini API: generates treatment plan from the CNN label,
+   in the farmer's selected language, as a fixed JSON schema
+            │
+            ▼
+   {
+     isHealthy, name, scientificName, confidence, severity,
+     symptoms, immediateActions, organicSolutions,
+     chemicalSolutions, preventionTips
+   }
+            │
+            ▼
+   Web UI renders the diagnosis and plan
 ```
+
+**Design choice:** the CNN makes the classification decision, which gives a consistent label and a measurable confidence score. Gemini is used only to explain that result and to localize it, so free-form text generation never decides the diagnosis.
+
+> **Live Assistant mode** uses Gemini for real-time commentary on the camera feed. It is a guidance feature and separate from the CNN classification above. *(Edit if your implementation differs.)*
+
+---
+
+## ⚠️ Limitations
+
+- The classifier has not been validated on real field photos, where lighting, background, and mixed symptoms are likely to reduce performance.
+- The classifier only knows its 11 supported classes. Non-tomato or very low-quality images may produce a misleading result.
+- Treatment guidance is AI-generated and should be reviewed by a local agronomist, especially chemical recommendations and dosages.
+- Multilingual treatment text is generated by an LLM and has not been reviewed by native-speaking agronomists.
 
 ---
 
 ## ⚙️ Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
 - A Google Gemini API key
+- [Any model files / Python requirements needed for the CNN]
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/gprajwalm10/tomato_pest_detection.git
 cd tomato_pest_detection
-
-# 2. Install dependencies
 npm install
-
-# 3. Set up environment variables
 cp .env.example .env.local
 ```
 
 ### Environment Variables
-
-Add the following to your `.env.local` file:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -153,65 +149,40 @@ Open `http://localhost:5173` in your browser.
 
 ---
 
-## 🤖 How the AI Works
+## 🏗️ Project Structure
 
 ```
-Farmer captures image or live video
-            │
-            ▼
-    Gemini AI (Plant Pathologist Mode)
-    ┌───────────────────────────────┐
-    │ Analyzes: leaf patterns,      │
-    │ color, texture, symptoms      │
-    └───────────────────────────────┘
-            │
-            ▼
-    Structured JSON Response
-    {
-      isHealthy, name, scientificName,
-      confidence, severity, symptoms,
-      immediateActions, organicSolutions,
-      chemicalSolutions, preventionTips
-    }
-            │
-            ▼
-    Web Interface (in Farmer's Language)
-    Real-time alerts + Treatment plan
+tomato_pest_detection/
+├── components/     # React UI components
+├── server/
+│   └── index.js    # Express backend (keeps the API key server-side)
+├── services/       # Classification and Gemini service integrations
+├── App.tsx         # Root application component
+├── constants.ts    # Prompts, sample market data, crop timeline, translations
+├── types.ts        # TypeScript type definitions
+└── .env.example    # Environment variable template
 ```
 
 ---
 
-## 📊 Results
+## 🔮 Roadmap
 
-- ✅ **95% detection accuracy** across 10 pest and disease categories on labeled image datasets
-- ✅ Diagnosis delivered in **under 10 seconds** from image upload to recommendations
-- ✅ Supports **6 Indian languages** — reaching farmers beyond English literacy barriers
-- ✅ **Live video mode** with real-time AI commentary for field-level diagnosis
-- ✅ Deployed live on **Vercel** with zero-downtime continuous deployment
-
----
-
-## 🔮 Future Improvements
-
-- [ ] Offline mode for areas with poor internet connectivity
-- [ ] Push notifications for regional pest outbreak alerts
-- [ ] Integration with weather APIs for disease risk forecasting
-- [ ] SMS alert system for feature phone users
-- [ ] Expansion beyond tomatoes to other crops
+- [ ] Evaluate on real field images and report per-class precision/recall
+- [ ] Confidence threshold: ask for a retake instead of guessing on low-confidence images
+- [ ] On-device model (TensorFlow Lite) for offline classification
+- [ ] Live mandi price integration (Agmarknet / data.gov.in)
+- [ ] Native-speaker review of translated agronomic content
+- [ ] Weather API integration for disease risk forecasting
+- [ ] Push and SMS alerts for regional outbreaks
+- [ ] Unit tests and CI pipeline
 
 ---
 
 ## 🙋 Author
 
-**Prajwal GM** — B.Tech Computer Science Graduate
+**Prajwal GM**, B.Tech Computer Science Graduate
 
 [![Portfolio](https://img.shields.io/badge/Portfolio-Visit-blue?style=flat-square)](https://prajwalportfolio-gilt.vercel.app)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat-square&logo=linkedin)](https://linkedin.com/in/prajwal-gm-3650b3335)
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-black?style=flat-square&logo=github)](https://github.com/gprajwalm10)
 [![LeetCode](https://img.shields.io/badge/LeetCode-126%2B_Solved-FFA116?style=flat-square&logo=leetcode)](https://leetcode.com/u/prajwal__gm)
-
----
-
-<div align="center">
-⭐ If AgriGuard helped you, consider giving it a star — it means a lot!
-</div>
